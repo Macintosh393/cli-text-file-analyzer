@@ -8,7 +8,7 @@ class TextAnalyzer:
     def __init__(self, text: str, n: int):
         self.text = text
         self.n = n
-        self.words = re.findall(r'\b\w+\b', text.lower())
+        self.words = re.findall(r'\b\w+\b', text.lower(), re.UNICODE)
 
     def get_symbol_counts(self) -> Dict[str, int]:
         """Calculate total symbols"""
