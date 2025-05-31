@@ -3,6 +3,7 @@ from modules.file_handler import FileHandler
 from modules.input_handler import InputHandler
 from modules.text_analyzer import TextAnalyzer
 from modules.output_formatter import OutputFormatter
+from modules.exceptions import TextAnalyzerError
 
 
 class TextFileAnalyzer:
@@ -21,24 +22,24 @@ class TextFileAnalyzer:
         print("The results will be saved as a JSON file.")
 
         while True:
-            # Get available files
-            available_files = self.file_handler.get_available_files(
-                self.path_manager.input_dir
-            )
-
-            if not available_files:
-                print(f"No .txt files found in {self.path_manager.input_dir}")
-                return
-
-            # Get user's file choice
-            chosen_file = self.input_handler.get_file_choice(available_files)
-            if chosen_file is None:
-                print("Goodbye!")
-                return
-
-            n = self.input_handler.get_n_value()
-
             try:
+                # Get available files
+                available_files = self.file_handler.get_available_files(
+                    self.path_manager.input_dir
+                )
+
+                if not available_files:
+                    print(f"No .txt files found in {self.path_manager.input_dir}")
+                    return
+
+                # Get user's file choice
+                chosen_file = self.input_handler.get_file_choice(available_files)
+                if chosen_file is None:
+                    print("Goodbye!")
+                    return
+
+                n = self.input_handler.get_n_value()
+
                 # Read and analyze text
                 input_path = self.path_manager.get_input_path(chosen_file)
                 text = self.file_handler.read_file(input_path)
@@ -55,8 +56,10 @@ class TextFileAnalyzer:
 
                 print(f"\nAnalysis complete! Results saved to: {output_path}")
 
+            except TextAnalyzerError as e:
+                print(f"\nError: {e}")
             except Exception as e:
-                print(f"An error occurred: {str(e)}")
+                print(f"\nUnexpected error: {e}")
 
             if not self.input_handler.continue_analysis():
                 print("Goodbye!")
