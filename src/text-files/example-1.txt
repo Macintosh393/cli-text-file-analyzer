@@ -1,0 +1,1 @@
+The Single Responsibility Principle (SRP) in object-oriented programming dictates that a class or module should have only one reason to change, meaning it should be responsible for only one distinct task or responsibility. This principle promotes modularity and makes code easier to understand, modify, and maintain.
