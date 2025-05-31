@@ -9,3 +9,11 @@ class ValidationError(TextAnalyzerError):
 class FileError(TextAnalyzerError):
     """Raised when file operations fail"""
     pass
+
+class ValidationError(Exception):
+    """Raised when file validation fails"""
+    pass
+
+class FileError(Exception):
+    """Raised when file operations fail"""
+    pass

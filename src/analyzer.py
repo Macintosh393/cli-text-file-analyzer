@@ -1,5 +1,6 @@
 from modules.path_manager import PathManager
 from modules.file_handler import FileHandler
+from modules.validators import FileValidator
 from modules.input_handler import InputHandler
 from modules.text_analyzer import TextAnalyzer
 from modules.output_formatter import OutputFormatter
@@ -11,7 +12,8 @@ class TextFileAnalyzer:
 
     def __init__(self):
         self.path_manager = PathManager()
-        self.file_handler = FileHandler()
+        self.validator = FileValidator()
+        self.file_handler = FileHandler(validator=self.validator)
         self.input_handler = InputHandler()
 
     def run(self) -> None:

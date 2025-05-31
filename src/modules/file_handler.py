@@ -1,33 +1,30 @@
-import os
 import json
 from pathlib import Path
 from typing import List, Dict, Any
+from src.config.config import ConfigFactory
 from .exceptions import FileError, ValidationError
-from .validators import InputValidator
 
 
 class FileHandler:
-    """Handles file operations"""
-
-    def __init__(self):
-        self.validator = InputValidator()
+    def __init__(self, validator):
+        self.validator = validator
+        self.config = ConfigFactory.get_config()
 
     def get_available_files(self, directory: str) -> List[str]:
-        """Get list of available .txt files"""
+        """List all txt files in directory"""
+        path = Path(directory)
         try:
-            path = Path(directory)
-            if not path.exists():
-                raise FileError(f"Directory not found: {directory}")
-            if not path.is_dir():
-                raise FileError(f"Not a directory: {directory}")
-
             files = [
                 f.name for f in path.iterdir()
-                if f.is_file() and f.suffix == '.txt'
+                if (f.is_file() and
+                    f.suffix in self.config.SUPPORTED_FILE_TYPES and
+                    f.stat().st_size <= self.config.MAX_FILE_SIZE)
             ]
             return sorted(files)
         except Exception as e:
-            raise FileError(f"Error accessing directory: {e}")
+            raise FileError(
+                self.config.ERROR_MESSAGES['dir_access_error'].format(e)
+            )
 
     def read_file(self, path: str) -> str:
         """Read content from file with encoding handling"""
@@ -35,8 +32,13 @@ class FileHandler:
         try:
             self.validator.validate_file_path(path)
 
-            encodings = ['utf-8', 'cp1251']
-            for encoding in encodings:
+            # Check file size
+            if path.stat().st_size > self.config.MAX_FILE_SIZE:
+                raise FileError(
+                    self.config.ERROR_MESSAGES['file_size_error'].format(path)
+                )
+
+            for encoding in self.config.SUPPORTED_ENCODINGS:
                 try:
                     with path.open('r', encoding=encoding) as f:
                         return f.read()
@@ -44,11 +46,13 @@ class FileHandler:
                     continue
 
             raise FileError(
-                f"Could not decode file {path} with supported encodings"
+                self.config.ERROR_MESSAGES['decode_error'].format(path)
             )
 
         except ValidationError as e:
-            raise FileError(f"Invalid file: {e}")
+            raise FileError(
+                self.config.ERROR_MESSAGES['invalid_file'].format(e)
+            )
         except Exception as e:
             raise FileError(f"Error reading file: {e}")
 

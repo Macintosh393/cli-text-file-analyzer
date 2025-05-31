@@ -2,6 +2,16 @@ from typing import Any, List
 from pathlib import Path
 from .exceptions import ValidationError
 
+
+class FileValidator:
+    def validate_file_path(self, path: Path) -> None:
+        """Validate if file path exists and is a file"""
+        if not path.exists():
+            raise ValidationError(f"File does not exist: {path}")
+        if not path.is_file():
+            raise ValidationError(f"Path is not a file: {path}")
+
+
 class InputValidator:
     """Handles all input validation logic"""
 
