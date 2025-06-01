@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import List, Dict, Any
 from src.config.config import ConfigFactory
@@ -7,12 +6,42 @@ from .exceptions import FileError, ValidationError
 
 
 class FileHandler:
-    def __init__(self, validator):
+    """Handles file operations for the text analyzer application.
+
+    This class manages file operations including reading text files,
+    listing available files, and saving analysis results.
+
+    Attributes:
+        validator: File validator instance for path validation
+        config: Application configuration instance
+    """
+
+    def __init__(self, validator) -> None:
+        """Initialize FileHandler with validator.
+
+        Args:
+            validator: Validator instance for file validation
+        """
         self.validator = validator
         self.config = ConfigFactory.get_config()
 
     def get_available_files(self, directory: str) -> List[str]:
-        """List all txt files in directory"""
+        """List all valid text files in the specified directory.
+
+        Lists files that:
+        - Have supported extensions (defined in config)
+        - Don't exceed maximum file size
+        - Are accessible
+
+        Args:
+            directory (str): Path to directory to search
+
+        Returns:
+            List[str]: List of valid file names, sorted alphabetically
+
+        Raises:
+            FileError: If directory access fails or other file operations fail
+        """
         path = Path(directory)
         try:
             files = [
@@ -28,65 +57,60 @@ class FileHandler:
             )
 
     def read_file(self, path: str) -> str:
-        """Read content from file with encoding handling"""
-        path = Path(path)
-        encoding_errors = []
+        """Read and decode content from a text file.
 
+        Attempts to read the file using supported encodings defined in config.
+
+        Args:
+            path (str): Path to the file to read
+
+        Returns:
+            str: Content of the file
+
+        Raises:
+            FileError: If file cannot be read or decoded
+            ValidationError: If file path is invalid
+        """
+        path = Path(path)
         try:
             self.validator.validate_file_path(path)
 
-            # Check file permissions early
-            if not os.access(path, os.R_OK):
-                raise FileError(
-                    "Permission denied",
-                    {"path": str(path)}
-                )
-
             # Check file size
-            file_size = path.stat().st_size
-            if file_size > self.config.MAX_FILE_SIZE:
+            if path.stat().st_size > self.config.MAX_FILE_SIZE:
                 raise FileError(
-                    self.config.ERROR_MESSAGES['file_size_error'].format(path),
-                    {
-                        "path": str(path),
-                        "size": file_size,
-                        "max_size": self.config.MAX_FILE_SIZE
-                    }
+                    self.config.ERROR_MESSAGES['file_size_error'].format(path)
                 )
 
             for encoding in self.config.SUPPORTED_ENCODINGS:
                 try:
                     with path.open('r', encoding=encoding) as f:
                         return f.read()
-                except UnicodeDecodeError as e:
-                    encoding_errors.append({
-                        "encoding": encoding,
-                        "error": str(e)
-                    })
+                except UnicodeDecodeError:
                     continue
 
             raise FileError(
-                "Failed to decode file with any supported encoding",
-                {
-                    "path": str(path),
-                    "attempted_encodings": encoding_errors
-                }
+                self.config.ERROR_MESSAGES['decode_error'].format(path)
             )
 
         except ValidationError as e:
-            raise FileError(str(e), {"path": str(path)})
-        except OSError as e:
             raise FileError(
-                f"OS error while reading file: {e}",
-                {
-                    "path": str(path),
-                    "error_code": e.errno,
-                    "error_type": e.__class__.__name__
-                }
+                self.config.ERROR_MESSAGES['invalid_file'].format(e)
             )
+        except Exception as e:
+            raise FileError(f"Error reading file: {e}")
 
     def save_json(self, data: Dict[str, Any], path: str) -> None:
-        """Save data to JSON file"""
+        """Save analysis results to a JSON file.
+
+        Creates necessary directories if they don't exist.
+
+        Args:
+            data (Dict[str, Any]): Data to save
+            path (str): Output file path
+
+        Raises:
+            FileError: If saving fails due to permissions or other IO errors
+        """
         path = Path(path)
         try:
             path.parent.mkdir(parents=True, exist_ok=True)

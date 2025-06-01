@@ -5,7 +5,7 @@
     },
     "sentence-count": 10,
     "word-count": 128,
-    "12-most-frequent-words": {
+    "13-most-frequent-words": {
         "ми": 7,
         "ще": 6,
         "і": 6,
@@ -17,7 +17,8 @@
         "положим": 3,
         "нашу": 3,
         "свободу": 3,
-        "покажем": 3
+        "покажем": 3,
+        "що": 3
     },
     "average-word-length": 4.66,
     "symbols-frequency": {

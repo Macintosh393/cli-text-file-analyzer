@@ -1,12 +1,33 @@
 import os
-from typing import Any, List
+from typing import Any, List, Optional
 from pathlib import Path
 from .exceptions import ValidationError
 
 
 class FileValidator:
+    """Handles validation of file paths and their properties.
+
+    Provides comprehensive validation for file paths including existence,
+    type checking, permissions, and file size verification.
+    """
+
     def validate_file_path(self, path: Path) -> None:
-        """Comprehensive file path validation"""
+        """Validate file path and its properties.
+
+        Performs comprehensive validation including:
+        - Type checking of the path object
+        - File existence
+        - File type verification
+        - Read permissions
+        - File size validation
+
+        Args:
+            path (Path): Path object to validate
+
+        Raises:
+            ValidationError: If any validation check fails, with context in
+                           the error details dictionary
+        """
         if not isinstance(path, Path):
             raise ValidationError(
                 "Invalid path type",
@@ -41,23 +62,28 @@ class FileValidator:
             )
 
 
-
 class InputValidator:
-    """Handles all input validation logic"""
+    """Handles validation of user input.
+
+    Provides methods to validate various types of user input including
+    numeric values, file selections, and yes/no responses.
+    """
 
     @staticmethod
     def validate_n_value(n: Any) -> int:
-        """
-        Validate N value for word frequency analysis.
+        """Validate N value for word frequency analysis.
+
+        Validates that the input can be converted to an integer and
+        falls within the acceptable range (1-100).
 
         Args:
-            n: Value to validate
+            n (Any): Value to validate, typically a string from user input
 
         Returns:
-            int: Validated N value
+            int: Validated integer value between 1 and 100
 
         Raises:
-            ValidationError: If validation fails
+            ValidationError: If value isn't numeric or is out of range
         """
         try:
             n = int(n)
@@ -68,19 +94,21 @@ class InputValidator:
             raise ValidationError("N must be an integer")
 
     @staticmethod
-    def validate_file_choice(choice: Any, available_files: List[str]) -> str:
-        """
-        Validate file choice input.
+    def validate_file_choice(choice: Any, available_files: List[str]) -> Optional[str]:
+        """Validate user's file selection choice.
+
+        Validates the user's input for file selection, allowing either
+        a numeric choice or 'q' to quit.
 
         Args:
-            choice: User's input choice
-            available_files: List of available files
+            choice (Any): User's input choice (number or 'q')
+            available_files (List[str]): List of available files to choose from
 
         Returns:
-            str: Chosen filename
+            Optional[str]: Selected filename or None if user chooses to quit
 
         Raises:
-            ValidationError: If validation fails
+            ValidationError: If choice is invalid or no files are available
         """
         if not available_files:
             raise ValidationError("No files available to choose from")
@@ -101,17 +129,18 @@ class InputValidator:
 
     @staticmethod
     def validate_continue_choice(choice: str) -> bool:
-        """
-        Validate continue analysis choice.
+        """Validate user's choice to continue analysis.
+
+        Ensures the input is either 'y' or 'n' for yes/no decision.
 
         Args:
-            choice: User's input choice
+            choice (str): User's input choice ('y' or 'n')
 
         Returns:
-            bool: True if continue, False if not
+            bool: True if continue ('y'), False if not ('n')
 
         Raises:
-            ValidationError: If validation fails
+            ValidationError: If input is neither 'y' nor 'n'
         """
         choice = choice.lower().strip()
         if choice not in ['y', 'n']:
@@ -120,14 +149,17 @@ class InputValidator:
 
     @staticmethod
     def validate_file_path(path: Path) -> None:
-        """
-        Validate file path.
+        """Validate file path and type.
+
+        Ensures the file exists, is a regular file (not a directory),
+        and has a .txt extension.
 
         Args:
-            path: Path to validate
+            path (Path): Path object to validate
 
         Raises:
-            ValidationError: If validation fails
+            ValidationError: If path is invalid, file doesn't exist,
+                           or file isn't a .txt file
         """
         if not path.exists():
             raise ValidationError(f"File not found: {path}")

@@ -8,16 +8,47 @@ from modules.exceptions import TextAnalyzerError
 
 
 class TextFileAnalyzer:
-    """Main class that orchestrates the text file analysis"""
+    """Main class that orchestrates the text file analysis process.
 
-    def __init__(self):
+    Coordinates between different components to:
+    - List available text files
+    - Handle user input
+    - Process file content
+    - Analyze text
+    - Format and save results
+
+    Attributes:
+        path_manager (PathManager): Manages file paths and directories
+        validator (FileValidator): Validates file operations
+        file_handler (FileHandler): Handles file reading and writing
+        input_handler (InputHandler): Manages user input operations
+    """
+
+    def __init__(self) -> None:
+        """Initialize TextFileAnalyzer with required components."""
         self.path_manager = PathManager()
         self.validator = FileValidator()
         self.file_handler = FileHandler(validator=self.validator)
         self.input_handler = InputHandler()
 
     def run(self) -> None:
-        """Run the text file analysis process"""
+        """Run the text file analysis process.
+
+        Main application loop that:
+        1. Displays available text files
+        2. Gets user input for file selection
+        3. Gets N value for analysis
+        4. Reads and analyzes text content
+        5. Formats and saves results
+        6. Handles errors and user continuation choice
+
+        The process continues until the user chooses to quit or
+        no valid files are found.
+
+        Raises:
+            TextAnalyzerError: For expected errors during analysis
+            Exception: For unexpected errors during execution
+        """
         print("Text File Analyzer")
         print("=================")
         print("This tool analyzes text files and generates statistics.")

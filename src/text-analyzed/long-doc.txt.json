@@ -5,7 +5,7 @@
     },
     "sentence-count": 2003,
     "word-count": 16018,
-    "15-most-frequent-words": {
+    "18-most-frequent-words": {
         "lorem": 2000,
         "ipsum": 2000,
         "dolor": 2000,
@@ -20,7 +20,10 @@
         "txt": 1,
         "file": 1,
         "is": 1,
-        "provided": 1
+        "provided": 1,
+        "by": 1,
+        "com": 1,
+        "visit": 1
     },
     "average-word-length": 5.87,
     "symbols-frequency": {
