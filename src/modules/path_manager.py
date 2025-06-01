@@ -1,4 +1,5 @@
 import os
+from .exceptions import FileError
 
 
 class PathManager:
@@ -24,5 +25,22 @@ class PathManager:
         return os.path.join(self.output_dir, filename + ".json")
 
     def ensure_output_dir_exists(self) -> None:
-        """Ensure output directory exists"""
-        os.makedirs(self.output_dir, exist_ok=True)
+        """Ensure output directory exists with error handling"""
+        try:
+            os.makedirs(self.output_dir, exist_ok=True)
+
+            # Verify write permissions
+            if not os.access(self.output_dir, os.W_OK):
+                raise FileError(
+                    "No write permission for output directory",
+                    {"path": self.output_dir}
+                )
+        except OSError as e:
+            raise FileError(
+                f"Failed to create output directory: {e}",
+                {
+                    "path": self.output_dir,
+                    "error": str(e),
+                    "error_code": e.errno
+                }
+            )

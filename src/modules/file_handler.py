@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 from src.config.config import ConfigFactory
@@ -29,32 +30,60 @@ class FileHandler:
     def read_file(self, path: str) -> str:
         """Read content from file with encoding handling"""
         path = Path(path)
+        encoding_errors = []
+
         try:
             self.validator.validate_file_path(path)
 
-            # Check file size
-            if path.stat().st_size > self.config.MAX_FILE_SIZE:
+            # Check file permissions early
+            if not os.access(path, os.R_OK):
                 raise FileError(
-                    self.config.ERROR_MESSAGES['file_size_error'].format(path)
+                    "Permission denied",
+                    {"path": str(path)}
+                )
+
+            # Check file size
+            file_size = path.stat().st_size
+            if file_size > self.config.MAX_FILE_SIZE:
+                raise FileError(
+                    self.config.ERROR_MESSAGES['file_size_error'].format(path),
+                    {
+                        "path": str(path),
+                        "size": file_size,
+                        "max_size": self.config.MAX_FILE_SIZE
+                    }
                 )
 
             for encoding in self.config.SUPPORTED_ENCODINGS:
                 try:
                     with path.open('r', encoding=encoding) as f:
                         return f.read()
-                except UnicodeDecodeError:
+                except UnicodeDecodeError as e:
+                    encoding_errors.append({
+                        "encoding": encoding,
+                        "error": str(e)
+                    })
                     continue
 
             raise FileError(
-                self.config.ERROR_MESSAGES['decode_error'].format(path)
+                "Failed to decode file with any supported encoding",
+                {
+                    "path": str(path),
+                    "attempted_encodings": encoding_errors
+                }
             )
 
         except ValidationError as e:
+            raise FileError(str(e), {"path": str(path)})
+        except OSError as e:
             raise FileError(
-                self.config.ERROR_MESSAGES['invalid_file'].format(e)
+                f"OS error while reading file: {e}",
+                {
+                    "path": str(path),
+                    "error_code": e.errno,
+                    "error_type": e.__class__.__name__
+                }
             )
-        except Exception as e:
-            raise FileError(f"Error reading file: {e}")
 
     def save_json(self, data: Dict[str, Any], path: str) -> None:
         """Save data to JSON file"""

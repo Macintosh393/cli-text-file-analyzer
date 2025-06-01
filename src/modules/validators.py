@@ -1,3 +1,4 @@
+import os
 from typing import Any, List
 from pathlib import Path
 from .exceptions import ValidationError
@@ -5,11 +6,40 @@ from .exceptions import ValidationError
 
 class FileValidator:
     def validate_file_path(self, path: Path) -> None:
-        """Validate if file path exists and is a file"""
-        if not path.exists():
-            raise ValidationError(f"File does not exist: {path}")
-        if not path.is_file():
-            raise ValidationError(f"Path is not a file: {path}")
+        """Comprehensive file path validation"""
+        if not isinstance(path, Path):
+            raise ValidationError(
+                "Invalid path type",
+                {"expected": "Path", "received": type(path).__name__}
+            )
+
+        try:
+            if not path.exists():
+                raise ValidationError(
+                    f"File does not exist: {path}",
+                    {"path": str(path)}
+                )
+            if not path.is_file():
+                raise ValidationError(
+                    f"Path is not a file: {path}",
+                    {"path": str(path), "type": "directory"}
+                )
+            if not os.access(path, os.R_OK):
+                raise ValidationError(
+                    f"No read permission: {path}",
+                    {"path": str(path)}
+                )
+            if path.stat().st_size == 0:
+                raise ValidationError(
+                    f"File is empty: {path}",
+                    {"path": str(path)}
+                )
+        except OSError as e:
+            raise ValidationError(
+                f"OS error during validation: {e}",
+                {"path": str(path), "error": str(e)}
+            )
+
 
 
 class InputValidator:

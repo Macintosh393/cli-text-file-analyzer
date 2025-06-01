@@ -1,6 +1,8 @@
 class TextAnalyzerError(Exception):
     """Base exception for text analyzer"""
-    pass
+    def __init__(self, message: str, details: dict = None):
+        super().__init__(message)
+        self.details = details or {}
 
 class ValidationError(TextAnalyzerError):
     """Raised when input validation fails"""
@@ -10,10 +12,10 @@ class FileError(TextAnalyzerError):
     """Raised when file operations fail"""
     pass
 
-class ValidationError(Exception):
-    """Raised when file validation fails"""
+class AnalysisError(TextAnalyzerError):
+    """Raised when text analysis operations fail"""
     pass
 
-class FileError(Exception):
-    """Raised when file operations fail"""
+class ConfigError(TextAnalyzerError):
+    """Raised when configuration errors occur"""
     pass
