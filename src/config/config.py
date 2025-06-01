@@ -102,29 +102,39 @@ class TestingConfig(BaseConfig):
         LOGGING_LEVEL: str = 'DEBUG'
 
 
-class ConfigFactory:
-    """Factory class for managing configuration instances based on environment."""
+# src/config/config.py
 
-    _configs: Mapping[str, Type[BaseConfig]] = {
-        'development': DevelopmentConfig,
-        'production': ProductionConfig,
-        'testing': TestingConfig,
-    }
+class ConfigFactory:
+    """Factory class for creating configuration objects based on environment."""
+
+    _config = None  # Cache for singleton pattern
 
     @classmethod
-    @lru_cache
-    def get_config(cls) -> BaseConfig.Settings:
+    def get_config(cls):
         """Get configuration instance based on environment.
 
-        Uses environment variable 'ENV' to determine which configuration to use.
-        Defaults to development configuration if ENV is not set or invalid.
-
         Returns:
-            BaseConfig.Settings: Configuration settings instance
-
-        Note:
-            Result is cached using lru_cache decorator
+            Settings: Configuration instance for current environment
         """
-        env = os.getenv('ENV', 'development').lower()
-        config_class = cls._configs.get(env, DevelopmentConfig)
-        return config_class.get_settings()
+        # Return cached config if exists
+        if cls._config is not None:
+            return cls._config
+
+        # Get environment setting
+        env = os.environ.get('ENV', 'development').lower()
+
+        # Create appropriate config based on environment
+        if env == 'production':
+            cls._config = ProductionConfig.Settings()
+        elif env == 'testing':
+            cls._config = TestingConfig.Settings()
+        else:
+            # Default to development config
+            cls._config = DevelopmentConfig.Settings()
+
+        return cls._config
+
+    @classmethod
+    def reset_config(cls):
+        """Reset the cached configuration instance."""
+        cls._config = None
